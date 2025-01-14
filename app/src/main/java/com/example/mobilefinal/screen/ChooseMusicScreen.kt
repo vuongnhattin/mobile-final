@@ -6,19 +6,34 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mobilefinal.icon.MusicNote
+import com.example.mobilefinal.icon.PauseCircle
+import com.example.mobilefinal.icon.Smartphone
 import com.example.mobilefinal.viewmodel.MusicItem
 import com.example.mobilefinal.viewmodel.MusicViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,18 +47,20 @@ fun ChooseMusicScreen(viewModel: MusicViewModel = viewModel()) {
     var mediaPlayer: MediaPlayer? by remember { mutableStateOf(null) }
     var currentPlayingMusic by remember { mutableStateOf<MusicItem?>(null) }
 
-    // Khôi phục bài hát đã chọn
+    val lazyListState = rememberLazyListState() // Thêm LazyListState
+
     LaunchedEffect(Unit) {
         val savedMusicId = getSavedMusicId(context)
         if (savedMusicId != null) {
             val savedMusic = musicList.find { it.id == savedMusicId }
             if (savedMusic != null) {
                 viewModel.selectedMusic.value = savedMusic
+                val index = musicList.indexOf(savedMusic)
+                lazyListState.scrollToItem(index)
             }
         }
     }
 
-    // Cleanup khi rời màn hình
     DisposableEffect(Unit) {
         onDispose {
             mediaPlayer?.apply {
@@ -94,6 +111,9 @@ fun ChooseMusicScreen(viewModel: MusicViewModel = viewModel()) {
                                     isPlaying = isPlayingNow
                                     currentPlayingMusic = nextMusic
                                 }
+
+                                val index = musicList.indexOf(nextMusic)
+                                lazyListState.animateScrollToItem(index)
                             }
                         }
                     }
@@ -110,7 +130,13 @@ fun ChooseMusicScreen(viewModel: MusicViewModel = viewModel()) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Nhạc chuông") })
+            TopAppBar(
+                title = { Text("Music Player") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
         }
     ) { padding ->
         Column(
@@ -118,79 +144,208 @@ fun ChooseMusicScreen(viewModel: MusicViewModel = viewModel()) {
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Hiển thị thông tin bài hát đang phát và nút điều khiển
-            if (isPlaying && currentPlayingMusic != null) {
-                Card(
+            // Player Card
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .padding(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                )
+            ) {
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
+                    // Hướng dẫn gesture
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(bottom = 8.dp)
                     ) {
-                        Text(
-                            text = "Đang phát: ${currentPlayingMusic?.name}",
-                            style = MaterialTheme.typography.titleMedium
+                        Icon(
+                            imageVector = Smartphone,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
                         )
-                        Button(
-                            onClick = {
-                                mediaPlayer?.apply {
-                                    stop()
-                                    release()
-                                }
-                                mediaPlayer = null
-                                isPlaying = false
-                                currentPlayingMusic = null
-                            },
-                            modifier = Modifier.padding(top = 8.dp)
+                        Text(
+                            text = if (isPlaying) "Lắc để chuyển bài" else "Lắc để phát nhạc",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+
+                    // Thông tin bài hát
+                    if (isPlaying && currentPlayingMusic != null) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("Dừng phát")
+                            Text(
+                                text = "Đang phát",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = currentPlayingMusic?.name ?: "",
+                                style = MaterialTheme.typography.titleMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    // Nút điều khiển
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        if (isPlaying) {
+                            FilledTonalIconButton(
+                                onClick = {
+                                    mediaPlayer?.apply {
+                                        stop()
+                                        release()
+                                    }
+                                    mediaPlayer = null
+                                    isPlaying = false
+                                    currentPlayingMusic = null
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = PauseCircle,
+                                    contentDescription = "Dừng phát",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        } else {
+                            FilledTonalIconButton(
+                                onClick = {
+                                    selectedMusic?.let { music ->
+                                        playMusic(music, context, mediaPlayer) { player, isPlayingNow ->
+                                            mediaPlayer = player
+                                            isPlaying = isPlayingNow
+                                            currentPlayingMusic = music
+                                        }
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PlayArrow,
+                                    contentDescription = "Phát nhạc",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
                     }
                 }
             }
 
+            // Tiêu đề danh sách
+            Text(
+                text = "Danh sách nhạc",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
+
             // Danh sách nhạc
-            musicList.forEach { music ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            // Chọn và phát nhạc khi click
-                            viewModel.selectedMusic.value = music
-                            saveSelectedMusic(context, music.id)
-                            playMusic(music, context, mediaPlayer) { player, isPlayingNow ->
-                                mediaPlayer = player
-                                isPlaying = isPlayingNow
-                                currentPlayingMusic = music
-                            }
-                        }
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = music.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f)
-                    )
-                    if (music.is3D) {
-                        Text(
-                            text = "3D",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(end = 8.dp)
+            LazyColumn(
+                state = lazyListState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+            ) {
+                items(musicList) { music ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp, horizontal = 8.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                viewModel.selectedMusic.value = music
+                                saveSelectedMusic(context, music.id)
+                                playMusic(music, context, mediaPlayer) { player, isPlayingNow ->
+                                    mediaPlayer = player
+                                    isPlaying = isPlayingNow
+                                    currentPlayingMusic = music
+                                }
+                            },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (selectedMusic?.id == music.id)
+                                MaterialTheme.colorScheme.primaryContainer
+                            else
+                                MaterialTheme.colorScheme.surface
                         )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                if (currentPlayingMusic?.id == music.id) {
+                                    Icon(
+                                        imageVector = MusicNote,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(end = 12.dp)
+                                    )
+                                }
+
+                                Column {
+                                    Text(
+                                        text = music.name,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = if (selectedMusic?.id == music.id)
+                                            MaterialTheme.colorScheme.primary
+                                        else
+                                            MaterialTheme.colorScheme.onSurface
+                                    )
+                                    if (music.is3D) {
+                                        Text(
+                                            text = "3D Audio",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            RadioButton(
+                                selected = selectedMusic?.id == music.id,
+                                onClick = null,
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                        }
                     }
-                    RadioButton(
-                        selected = selectedMusic?.id == music.id,
-                        onClick = null
-                    )
                 }
-                Divider()
+                // Thêm padding cuối cùng
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
             }
         }
     }
 }
+
+// Các hàm utility giữ nguyên
 
 private fun playMusic(
     music: MusicItem?,
