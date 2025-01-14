@@ -15,7 +15,8 @@ class MusicViewModel : ViewModel() {
     val musicList = mutableStateOf(
         listOf(
             MusicItem(1, "Chúng ta không thuộc về nhau", R.raw.chungtakhongthuocvenhau, is3D = true),
-            MusicItem(2, "Ngôi đền", R.raw.alarm_sound, is3D = true)
+//            MusicItem(2, "Ngôi đền", R.raw.alarm_sound, is3D = true),
+            MusicItem(3, "Hãy trao cho anh", R.raw.haytraochoanh, is3D = true),
         )
     )
 
