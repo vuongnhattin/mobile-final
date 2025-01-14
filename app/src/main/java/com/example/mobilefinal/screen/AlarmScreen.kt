@@ -6,5 +6,5 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun AlarmScreen(modifier: Modifier = Modifier) {
-    Text("Alarm Screen")
+    Text("Alarm screen")
 }

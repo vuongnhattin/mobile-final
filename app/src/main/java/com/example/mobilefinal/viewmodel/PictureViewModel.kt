@@ -15,6 +15,9 @@ import retrofit2.HttpException
 import java.io.ByteArrayOutputStream
 
 class PictureViewModel : ViewModel() {
+    companion object {
+
+    }
     var imageBitmap by mutableStateOf<Bitmap?>(null)
         private set
 
@@ -27,6 +30,11 @@ class PictureViewModel : ViewModel() {
     fun setBitmap(bitmap: Bitmap) {
         imageBitmap = bitmap
         base64EncodedImage = bitmapToBase64(bitmap)
+    }
+
+    fun resetImage() {
+        imageBitmap = null
+        base64EncodedImage = null
     }
 
     fun resetDetectionResult() {
