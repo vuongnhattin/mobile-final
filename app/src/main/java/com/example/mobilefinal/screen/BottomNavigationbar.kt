@@ -54,13 +54,6 @@ fun BottomNavigationBar(
                 onClick = { navController.navigate(item.route) },
                 label = { Text(item.label) },
                 icon = { Icon(item.icon, contentDescription = null) },
-//                colors = NavigationBarItemDefaults.colors(
-//                    selectedIconColor = Color.Black,
-//                    selectedTextColor = Color.Black,
-//                    unselectedIconColor = Color.Gray,
-//                    unselectedTextColor = Color.Gray,
-//                    indicatorColor = Color.Transparent
-//                )
             )
         }
     }
