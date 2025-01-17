@@ -34,6 +34,7 @@ import com.example.mobilefinal.screen.WaterTakePictureScreen
 import com.example.mobilefinal.ui.theme.MobileFinalTheme
 import com.example.mobilefinal.util.convertToMillis
 import com.example.mobilefinal.viewmodel.AlarmViewModel
+import com.example.mobilefinal.viewmodel.MusicViewModel
 import com.example.mobilefinal.viewmodel.PictureViewModel
 import com.example.mobilefinal.viewmodel.QuizViewModel
 import com.example.mobilefinal.viewmodel.WaterViewModel
@@ -60,6 +61,10 @@ val LocalQuizViewModel = staticCompositionLocalOf<QuizViewModel> {
     error("QuizViewModel is not provided")
 }
 
+val LocalMusicViewModel = staticCompositionLocalOf<MusicViewModel> {
+    error("MusicViewModel is not provided")
+}
+
 class MainActivity : ComponentActivity() {
 
 
@@ -73,7 +78,8 @@ class MainActivity : ComponentActivity() {
                     LocalPictureViewModel provides viewModel(),
                     LocalWaterViewModel provides WaterViewModel(LocalContext.current),
                     LocalAlarmViewModel provides AlarmViewModel(LocalContext.current),
-                    LocalQuizViewModel provides QuizViewModel()
+                    LocalQuizViewModel provides QuizViewModel(),
+                    LocalMusicViewModel provides MusicViewModel()
                 ) {
                     MyApp()
                 }
@@ -86,6 +92,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp(modifier: Modifier = Modifier) {
     val waterViewModel = LocalWaterViewModel.current
+    val musicViewModel = LocalMusicViewModel.current
     val context = LocalContext.current
     val hours = waterViewModel.hours
     val minutes = waterViewModel.minutes
@@ -95,10 +102,13 @@ fun MyApp(modifier: Modifier = Modifier) {
         if (timerStarted && (hours > 0 || minutes > 0 || seconds > 0)) {
             val totalMillis = (hours * 3600 + minutes * 60 + seconds) * 1000L
             delay(totalMillis)
+            val intent = Intent(context, MusicService::class.java).apply {
+                putExtra("MUSIC_RESOURCE_ID", musicViewModel.selectedMusic?.resourceId ?: -1) // Replace with the desired resource ID
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(Intent(context, MusicService::class.java))
+                context.startForegroundService(intent)
             } else {
-                context.startService(Intent(context, MusicService::class.java))
+                context.startService(intent)
             }
         }
     }
@@ -130,10 +140,13 @@ fun MyApp(modifier: Modifier = Modifier) {
                 val delayMillis = alarmTime - currentTime
                 delay(delayMillis)
             }
+            val intent = Intent(context, AlarmService::class.java).apply {
+                putExtra("MUSIC_RESOURCE_ID", musicViewModel.selectedMusic?.resourceId ?: -1) // Replace with the desired resource ID
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(Intent(context, AlarmService::class.java))
+                context.startForegroundService(intent)
             } else {
-                context.startService(Intent(context, AlarmService::class.java))
+                context.startService(intent)
             }
         }
     }

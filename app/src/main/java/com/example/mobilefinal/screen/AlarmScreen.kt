@@ -152,16 +152,12 @@ fun AlarmScreen() {
 }
 
 class AlarmService : Service() {
-    private lateinit var mediaPlayer: MediaPlayer
+    private var mediaPlayer: MediaPlayer? = null
     private val notificationChannelId = "alarm_service_channel"
     private val notificationId = 2
 
     override fun onCreate() {
         super.onCreate()
-
-        // Initialize media player
-        mediaPlayer = MediaPlayer.create(this, R.raw.alarm_sound) // Replace with your audio file
-        mediaPlayer.isLooping = true
 
         // Create notification channel (required for Android 8.0 and higher)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -186,14 +182,34 @@ class AlarmService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        mediaPlayer.start()
+        val musicResourceId = intent?.getIntExtra("MUSIC_RESOURCE_ID", -1)
+
+        if (musicResourceId != null && musicResourceId != -1) {
+            playNewMusic(musicResourceId)
+        }
         return START_STICKY
+    }
+
+    private fun playNewMusic(resourceId: Int) {
+        // Stop and release the current media player if it's playing
+        mediaPlayer?.apply {
+            if (isPlaying) stop()
+            release()
+        }
+
+        // Initialize a new media player with the new music
+        mediaPlayer = MediaPlayer.create(this, resourceId).apply {
+            isLooping = true
+            start()
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mediaPlayer.stop()
-        mediaPlayer.release()
+        mediaPlayer?.apply {
+            stop()
+            release()
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? {

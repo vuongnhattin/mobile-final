@@ -6,7 +6,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,16 +19,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mobilefinal.LocalMusicViewModel
 import com.example.mobilefinal.icon.MusicNote
 import com.example.mobilefinal.icon.PauseCircle
 import com.example.mobilefinal.icon.Smartphone
-import com.example.mobilefinal.viewmodel.MusicItem
+import com.example.mobilefinal.model.MusicData
+import com.example.mobilefinal.model.MusicItem
 import com.example.mobilefinal.viewmodel.MusicViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -37,11 +37,12 @@ import kotlinx.coroutines.Dispatchers
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChooseMusicScreen(viewModel: MusicViewModel = viewModel()) {
+fun ChooseMusicScreen() {
+    val viewModel = LocalMusicViewModel.current
     val context = LocalContext.current
-    val musicList by viewModel.musicList
-    val selectedMusic by viewModel.selectedMusic
+    val selectedMusic = viewModel.selectedMusic
     val coroutineScope = rememberCoroutineScope()
+    val musicList = MusicData.musicList
 
     var isPlaying by remember { mutableStateOf(false) }
     var mediaPlayer: MediaPlayer? by remember { mutableStateOf(null) }
@@ -54,7 +55,7 @@ fun ChooseMusicScreen(viewModel: MusicViewModel = viewModel()) {
         if (savedMusicId != null) {
             val savedMusic = musicList.find { it.id == savedMusicId }
             if (savedMusic != null) {
-                viewModel.selectedMusic.value = savedMusic
+                viewModel.setMusic(savedMusic)
                 val index = musicList.indexOf(savedMusic)
                 lazyListState.scrollToItem(index)
             }
@@ -104,7 +105,7 @@ fun ChooseMusicScreen(viewModel: MusicViewModel = viewModel()) {
                             } else {
                                 // Lần lắc tiếp theo - chuyển và chọn bài tiếp theo
                                 val nextMusic = getNextMusic(musicList, currentPlayingMusic)
-                                viewModel.selectedMusic.value = nextMusic // Chọn bài tiếp theo
+                                viewModel.setMusic(nextMusic) // Chọn bài tiếp theo
                                 saveSelectedMusic(context, nextMusic.id) // Lưu lựa chọn
                                 playMusic(nextMusic, context, mediaPlayer) { player, isPlayingNow ->
                                     mediaPlayer = player
@@ -271,7 +272,7 @@ fun ChooseMusicScreen(viewModel: MusicViewModel = viewModel()) {
                             .padding(vertical = 4.dp, horizontal = 8.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .clickable {
-                                viewModel.selectedMusic.value = music
+                                viewModel.setMusic(music)
                                 saveSelectedMusic(context, music.id)
                                 playMusic(music, context, mediaPlayer) { player, isPlayingNow ->
                                     mediaPlayer = player
