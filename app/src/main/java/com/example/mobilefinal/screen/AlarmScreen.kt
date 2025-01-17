@@ -142,9 +142,7 @@ fun AlarmScreen() {
         }
         Button(
             onClick = {
-//                navController.navigate("take-picture")
-                context.stopService(Intent(context, AlarmService::class.java))
-                alarmViewModel.stopTimer()
+                navController.navigate("quiz")
             },
             enabled = timerStarted
         ) {

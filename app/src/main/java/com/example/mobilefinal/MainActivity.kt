@@ -35,6 +35,7 @@ import com.example.mobilefinal.ui.theme.MobileFinalTheme
 import com.example.mobilefinal.util.convertToMillis
 import com.example.mobilefinal.viewmodel.AlarmViewModel
 import com.example.mobilefinal.viewmodel.PictureViewModel
+import com.example.mobilefinal.viewmodel.QuizViewModel
 import com.example.mobilefinal.viewmodel.WaterViewModel
 import kotlinx.coroutines.delay
 import java.util.Calendar
@@ -55,9 +56,14 @@ val LocalAlarmViewModel = staticCompositionLocalOf<AlarmViewModel> {
     error("AlarmViewModel is not provided")
 }
 
+val LocalQuizViewModel = staticCompositionLocalOf<QuizViewModel> {
+    error("QuizViewModel is not provided")
+}
+
 class MainActivity : ComponentActivity() {
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -66,7 +72,8 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(
                     LocalPictureViewModel provides viewModel(),
                     LocalWaterViewModel provides WaterViewModel(LocalContext.current),
-                    LocalAlarmViewModel provides AlarmViewModel(LocalContext.current)
+                    LocalAlarmViewModel provides AlarmViewModel(LocalContext.current),
+                    LocalQuizViewModel provides QuizViewModel()
                 ) {
                     MyApp()
                 }
