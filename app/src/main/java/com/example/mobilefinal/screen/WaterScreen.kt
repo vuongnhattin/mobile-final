@@ -155,7 +155,7 @@ fun WaterScreen() {
             },
             enabled = !timerStarted && (hours > 0 || minutes > 0 || seconds > 0)
         ) {
-            Text("Đặt hẹn giờ")
+            Text("Đặt nhắc nhở")
         }
         Button(
             onClick = {
@@ -163,7 +163,7 @@ fun WaterScreen() {
             },
             enabled = timerStarted && (hours > 0 || minutes > 0 || seconds > 0)
         ) {
-            Text("Hủy hẹn giờ")
+            Text("Huỷ nhắc nhở")
         }
         Button(
             onClick = {
