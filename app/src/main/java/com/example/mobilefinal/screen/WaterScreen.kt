@@ -7,6 +7,7 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.IBinder
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,10 +22,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -32,8 +36,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import com.example.mobilefinal.LocalNavController
@@ -63,9 +70,13 @@ fun TimePicker(
             value = hourState.value,
             onValueChange = { newValue ->
                 hourState.value = newValue
-                onTimeChanged(newValue.toIntOrNull(), minuteState.value.toIntOrNull(), secondState.value.toIntOrNull())
+                onTimeChanged(
+                    newValue.toIntOrNull(),
+                    minuteState.value.toIntOrNull(),
+                    secondState.value.toIntOrNull()
+                )
             },
-            label = "Hour",
+            label = "Giờ",
             enabled = enabled
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -73,9 +84,13 @@ fun TimePicker(
             value = minuteState.value,
             onValueChange = { newValue ->
                 minuteState.value = newValue
-                onTimeChanged(hourState.value.toIntOrNull(), newValue.toIntOrNull(), secondState.value.toIntOrNull())
+                onTimeChanged(
+                    hourState.value.toIntOrNull(),
+                    newValue.toIntOrNull(),
+                    secondState.value.toIntOrNull()
+                )
             },
-            label = "Minute",
+            label = "Phút",
             enabled = enabled
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -83,9 +98,13 @@ fun TimePicker(
             value = secondState.value,
             onValueChange = { newValue ->
                 secondState.value = newValue
-                onTimeChanged(hourState.value.toIntOrNull(), minuteState.value.toIntOrNull(), newValue.toIntOrNull())
+                onTimeChanged(
+                    hourState.value.toIntOrNull(),
+                    minuteState.value.toIntOrNull(),
+                    newValue.toIntOrNull()
+                )
             },
-            label = "Second",
+            label = "Giây",
             enabled = enabled
         )
     }
@@ -124,53 +143,62 @@ fun WaterScreen() {
     val navController = LocalNavController.current
     val scope = rememberCoroutineScope()
 
-
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TimePicker(
-            hour = hours,
-            minute = minutes,
-            second = seconds,
-            onTimeChanged = { newHour, newMinute, newSecond ->
-                waterViewModel.setTime(newHour ?: 0, newMinute ?: 0, newSecond ?: 0)
-            },
-            enabled = !timerStarted
+        Image(
+            painterResource(R.drawable.cup),
+            contentDescription = "Cup",
+            modifier = Modifier
+                .padding(top = 32.dp)
         )
+        OutlinedCard() {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                TimePicker(
+                    hour = hours,
+                    minute = minutes,
+                    second = seconds,
+                    onTimeChanged = { newHour, newMinute, newSecond ->
+                        waterViewModel.setTime(newHour ?: 0, newMinute ?: 0, newSecond ?: 0)
+                    },
+                    enabled = !timerStarted
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Bật nhắc nhở",
+                        style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.width(20.dp))
+                    Switch(
+                        checked = timerStarted,
+                        onCheckedChange = {
+                            if (it) {
+                                waterViewModel.startTimer()
+                            } else {
+                                waterViewModel.stopTimer()
+                            }
+                        },
+                        enabled = (hours > 0 || minutes > 0 || seconds > 0
+                                )
+                    ) }
+            }
+        }
+        CustomCard {
+            Text("Bạn sẽ được nhắc nhở uống nước sau mỗi khoảng thời gian bạn đặt",
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center
+            )
+        }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = {
-                if (!timerStarted) {
-                    waterViewModel.startTimer()
-                }
-            },
-            enabled = !timerStarted && (hours > 0 || minutes > 0 || seconds > 0)
-        ) {
-            Text("Đặt nhắc nhở")
-        }
-        Button(
-            onClick = {
-                waterViewModel.stopTimer()
-            },
-            enabled = timerStarted && (hours > 0 || minutes > 0 || seconds > 0)
-        ) {
-            Text("Huỷ nhắc nhở")
-        }
-        Button(
-            onClick = {
-                navController.navigate("take-picture")
-            },
-            enabled = timerStarted && (hours > 0 || minutes > 0 || seconds > 0)
-        ) {
-            Text("Tắt chuông")
-        }
     }
 }
 

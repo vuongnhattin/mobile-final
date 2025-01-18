@@ -20,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -131,8 +133,10 @@ fun ChooseMusicScreen() {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Music Player") },
+            CenterAlignedTopAppBar(
+                title = { Text("Music Player",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                ) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
@@ -366,21 +370,21 @@ private fun playMusic(
     }
 }
 
-private fun getNextMusic(musicList: List<MusicItem>, currentMusic: MusicItem?): MusicItem {
+fun getNextMusic(musicList: List<MusicItem>, currentMusic: MusicItem?): MusicItem {
     val currentIndex = musicList.indexOf(currentMusic)
     return musicList[(currentIndex + 1) % musicList.size]
 }
 
 // Lưu id bài hát đã chọn vào SharedPreferences
-private fun saveSelectedMusic(context: Context, musicId: Int) {
+fun saveSelectedMusic(context: Context, musicId: Int) {
     val sharedPreferences = context.getSharedPreferences("music_prefs", Context.MODE_PRIVATE)
     sharedPreferences.edit().putInt("selected_music_id", musicId).apply()
 }
 
 // Lấy id bài hát đã lưu từ SharedPreferences
-private fun getSavedMusicId(context: Context): Int? {
+fun getSavedMusicId(context: Context): Int? {
     val sharedPreferences = context.getSharedPreferences("music_prefs", Context.MODE_PRIVATE)
     return if (sharedPreferences.contains("selected_music_id")) {
-        sharedPreferences.getInt("selected_music_id", -1).takeIf { it != -1 }
+        sharedPreferences.getInt("selected_music_id", MusicData.musicList[0].resourceId).takeIf { it != -1 }
     } else null
 }

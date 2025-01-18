@@ -23,9 +23,25 @@ class AlarmViewModel(private val context: Context) : ViewModel() {
         private set
     var year by mutableStateOf(0)
         private set
+    var ringing by mutableStateOf(false)
+        private set
 
     init {
         loadTimerState()
+    }
+
+    fun startRinging() {
+        ringing = true
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("ringing", true)
+        editor.apply()
+    }
+
+    fun stopRinging() {
+        ringing = false
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("ringing", false)
+        editor.apply()
     }
 
     // Load saved timer state from SharedPreferences
@@ -37,6 +53,7 @@ class AlarmViewModel(private val context: Context) : ViewModel() {
         day = sharedPreferences.getInt("day", 0)
         month = sharedPreferences.getInt("month", 0)
         year = sharedPreferences.getInt("year", 0)
+        ringing = sharedPreferences.getBoolean("ringing", false)
     }
 
     // Set the time and save it to SharedPreferences
