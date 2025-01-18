@@ -7,6 +7,7 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.IBinder
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,27 +22,31 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import com.example.mobilefinal.LocalNavController
 import com.example.mobilefinal.LocalWaterViewModel
 import com.example.mobilefinal.R
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.example.mobilefinal.model.MusicData
 
 @Composable
 fun TimePicker(
@@ -65,9 +70,13 @@ fun TimePicker(
             value = hourState.value,
             onValueChange = { newValue ->
                 hourState.value = newValue
-                onTimeChanged(newValue.toIntOrNull(), minuteState.value.toIntOrNull(), secondState.value.toIntOrNull())
+                onTimeChanged(
+                    newValue.toIntOrNull(),
+                    minuteState.value.toIntOrNull(),
+                    secondState.value.toIntOrNull()
+                )
             },
-            label = "Hour",
+            label = "Giờ",
             enabled = enabled
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -75,9 +84,13 @@ fun TimePicker(
             value = minuteState.value,
             onValueChange = { newValue ->
                 minuteState.value = newValue
-                onTimeChanged(hourState.value.toIntOrNull(), newValue.toIntOrNull(), secondState.value.toIntOrNull())
+                onTimeChanged(
+                    hourState.value.toIntOrNull(),
+                    newValue.toIntOrNull(),
+                    secondState.value.toIntOrNull()
+                )
             },
-            label = "Minute",
+            label = "Phút",
             enabled = enabled
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -85,9 +98,13 @@ fun TimePicker(
             value = secondState.value,
             onValueChange = { newValue ->
                 secondState.value = newValue
-                onTimeChanged(hourState.value.toIntOrNull(), minuteState.value.toIntOrNull(), newValue.toIntOrNull())
+                onTimeChanged(
+                    hourState.value.toIntOrNull(),
+                    minuteState.value.toIntOrNull(),
+                    newValue.toIntOrNull()
+                )
             },
-            label = "Second",
+            label = "Giây",
             enabled = enabled
         )
     }
@@ -126,68 +143,73 @@ fun WaterScreen() {
     val navController = LocalNavController.current
     val scope = rememberCoroutineScope()
 
-
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TimePicker(
-            hour = hours,
-            minute = minutes,
-            second = seconds,
-            onTimeChanged = { newHour, newMinute, newSecond ->
-                waterViewModel.setTime(newHour ?: 0, newMinute ?: 0, newSecond ?: 0)
-            },
-            enabled = !timerStarted
+        Image(
+            painterResource(R.drawable.cup),
+            contentDescription = "Cup",
+            modifier = Modifier
+                .padding(top = 32.dp)
         )
+        OutlinedCard() {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                TimePicker(
+                    hour = hours,
+                    minute = minutes,
+                    second = seconds,
+                    onTimeChanged = { newHour, newMinute, newSecond ->
+                        waterViewModel.setTime(newHour ?: 0, newMinute ?: 0, newSecond ?: 0)
+                    },
+                    enabled = !timerStarted
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Bật nhắc nhở",
+                        style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.width(20.dp))
+                    Switch(
+                        checked = timerStarted,
+                        onCheckedChange = {
+                            if (it) {
+                                waterViewModel.startTimer()
+                            } else {
+                                waterViewModel.stopTimer()
+                            }
+                        },
+                        enabled = (hours > 0 || minutes > 0 || seconds > 0
+                                )
+                    ) }
+            }
+        }
+        CustomCard {
+            Text("Bạn sẽ được nhắc nhở uống nước sau mỗi khoảng thời gian bạn đặt",
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center
+            )
+        }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = {
-                if (!timerStarted) {
-                    waterViewModel.startTimer()
-                }
-            },
-            enabled = !timerStarted && (hours > 0 || minutes > 0 || seconds > 0)
-        ) {
-            Text("Đặt hẹn giờ")
-        }
-        Button(
-            onClick = {
-                waterViewModel.stopTimer()
-            },
-            enabled = timerStarted && (hours > 0 || minutes > 0 || seconds > 0)
-        ) {
-            Text("Hủy hẹn giờ")
-        }
-        Button(
-            onClick = {
-                navController.navigate("take-picture")
-            },
-            enabled = timerStarted && (hours > 0 || minutes > 0 || seconds > 0)
-        ) {
-            Text("Tắt chuông")
-        }
     }
 }
 
 
 class MusicService : Service() {
-    private lateinit var mediaPlayer: MediaPlayer
+    private var mediaPlayer: MediaPlayer? = null
     private val notificationChannelId = "music_service_channel"
     private val notificationId = 1
 
     override fun onCreate() {
         super.onCreate()
-
-        // Initialize media player
-        mediaPlayer = MediaPlayer.create(this, R.raw.alarm_sound) // Replace with your audio file
-        mediaPlayer.isLooping = true
 
         // Create notification channel (required for Android 8.0 and higher)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -212,20 +234,41 @@ class MusicService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        mediaPlayer.start()
+        val musicResourceId = intent?.getIntExtra("MUSIC_RESOURCE_ID", -1)
+
+        if (musicResourceId != null && musicResourceId != -1) {
+            playNewMusic(musicResourceId)
+        }
         return START_STICKY
+    }
+
+    private fun playNewMusic(resourceId: Int) {
+        // Stop and release the current media player if it's playing
+        mediaPlayer?.apply {
+            if (isPlaying) stop()
+            release()
+        }
+
+        // Initialize a new media player with the new music
+        mediaPlayer = MediaPlayer.create(this, resourceId).apply {
+            isLooping = true
+            start()
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mediaPlayer.stop()
-        mediaPlayer.release()
+        mediaPlayer?.apply {
+            stop()
+            release()
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 }
+
 
 @Composable
 fun NumberPicker(

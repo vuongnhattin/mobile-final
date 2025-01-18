@@ -25,6 +25,8 @@
 <!--        <service android:name=".screen.TimerService" />-->
         <service android:name=".screen.MusicService"
             android:foregroundServiceType="mediaPlayback"/>
+        <service android:name=".screen.AlarmService"
+            android:foregroundServiceType="mediaPlayback"/>
 <!--        <service-->
 <!--            android:name=".screen.AlarmService"-->
 <!--            android:foregroundServiceType="mediaPlayback" />-->

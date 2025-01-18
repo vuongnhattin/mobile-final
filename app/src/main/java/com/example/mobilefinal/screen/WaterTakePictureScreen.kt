@@ -106,14 +106,14 @@ fun WaterTakePictureScreen() {
                         style = MaterialTheme.typography.titleMedium
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.popBackStack()
-//                        waterViewModel.startTimer()
-                    }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = null)
-                    }
-                }
+//                navigationIcon = {
+//                    IconButton(onClick = {
+//                        navController.popBackStack()
+////                        waterViewModel.startTimer()
+//                    }) {
+//                        Icon(Icons.Default.ArrowBack, contentDescription = null)
+//                    }
+//                }
             )
         }
     ) { innerPadding ->
@@ -281,6 +281,7 @@ fun WaterTakePictureScreen() {
             Button(
                 onClick = {
                     found = false
+                    waterViewModel.stopRinging()
                     takePictureViewModel.resetDetectionResult()
                     takePictureViewModel.resetImage()
                     context.stopService(Intent(context, MusicService::class.java))
@@ -290,6 +291,7 @@ fun WaterTakePictureScreen() {
                         delay(100)
                         waterViewModel.startTimer()
                     }
+                    navController.navigate("water")
                 },
                 modifier = Modifier.fillMaxWidth(), enabled = found
             ) {

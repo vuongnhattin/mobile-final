@@ -20,9 +20,25 @@ class WaterViewModel(private val context: Context) : ViewModel() {
         private set
     var seconds by mutableStateOf(0)
         private set
+    var ringing by mutableStateOf(false)
+        private set
 
     init {
         loadTimerState()
+    }
+
+    fun startRinging() {
+        ringing = true
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("ringing", true)
+        editor.apply()
+    }
+
+    fun stopRinging() {
+        ringing = false
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("ringing", false)
+        editor.apply()
     }
 
     // Load saved timer state from SharedPreferences
@@ -31,6 +47,7 @@ class WaterViewModel(private val context: Context) : ViewModel() {
         hours = sharedPreferences.getInt("hours", 0)
         minutes = sharedPreferences.getInt("minutes", 0)
         seconds = sharedPreferences.getInt("seconds", 0)
+        ringing = sharedPreferences.getBoolean("ringing", false)
     }
 
     // Set the time and save it to SharedPreferences
