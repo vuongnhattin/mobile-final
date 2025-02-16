@@ -3,4 +3,4 @@
 - Copy thư mục **raw** vào thư mục **res** của project
 
 # Video demo
-[https://drive.google.com/file/d/1V2zQxJR2vh0WdXJHSqPf3IVe7N183WHp/view?usp=sharing](https://drive.google.com/file/d/1V2zQxJR2vh0WdXJHSqPf3IVe7N183WHp/view?usp=sharing)
+[https://youtu.be/lxU1j5w9Vq4](https://youtu.be/lxU1j5w9Vq4)
